@@ -16,11 +16,14 @@ interface Props {
   members: Member[];
   onToggleDone: (choreId: string, date: string) => void;
   onEditChore: (chore: Chore) => void;
+  spanRowCount?: number;
 }
 
 const MAX_VISIBLE = 3;
 
-export default function DayCell({ date, isCurrentMonth, occurrences, members, onToggleDone, onEditChore }: Props) {
+const SPAN_ROW_SIZE = 24; // must match MonthView constant (SPAN_BAR_HEIGHT + SPAN_BAR_GAP)
+
+export default function DayCell({ date, isCurrentMonth, occurrences, members, onToggleDone, onEditChore, spanRowCount = 0 }: Props) {
   const [showAll, setShowAll] = useState(false);
   const today = isToday(date);
   const visible = showAll ? occurrences : occurrences.slice(0, MAX_VISIBLE);
@@ -46,7 +49,7 @@ export default function DayCell({ date, isCurrentMonth, occurrences, members, on
         </span>
       </div>
 
-      <div className="flex flex-col gap-0.5 flex-1">
+      <div className="flex flex-col gap-0.5 flex-1" style={{ paddingTop: spanRowCount * SPAN_ROW_SIZE }}>
         {visible.map(({ chore, date: d, done }) => (
           <ChoreChip
             key={chore.id}
