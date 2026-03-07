@@ -35,8 +35,17 @@ export function getOccurrencesInRange(
 
   switch (chore.recurrence.type) {
     case 'none': {
-      if (isWithinInterval(choreStart, interval)) {
-        results.push(format(choreStart, 'yyyy-MM-dd'));
+      if (choreEnd) {
+        // Multi-day event: show on every day from startDate to endDate
+        let current = effectiveStart;
+        while (!isAfter(current, effectiveEnd)) {
+          results.push(format(current, 'yyyy-MM-dd'));
+          current = addDays(current, 1);
+        }
+      } else {
+        if (isWithinInterval(choreStart, interval)) {
+          results.push(format(choreStart, 'yyyy-MM-dd'));
+        }
       }
       break;
     }
