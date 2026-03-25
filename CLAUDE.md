@@ -47,9 +47,6 @@ src/
         └── TeamModal.tsx          # Add/remove team members
 ```
 
-**Additional documentation:**
-- `.claude/docs/architectural_patterns.md` — deep-dive on state management, data flow, component patterns, and date conventions
-- `.claude/docs/unit_testing_practices.md` — testing stack, file placement, render helper pattern, querying, interactions, and what to/not to test
 
 ## Key Conventions
 
