@@ -43,7 +43,7 @@ src/
     │   └── __tests__/
     │       └── ChoreChip.test.tsx
     └── Modals/
-        ├── ChoreModal.tsx         # Add/edit chore form (title, dates, recurrence, color, assignee)
+        ├── ChoreModal.tsx         # Add/edit chore form (title, dates, recurrence, color, assignee, difficulty)
         └── TeamModal.tsx          # Add/remove team members
 ```
 
@@ -55,6 +55,12 @@ src/
 - Always use `date-fns` functions (`parseISO`, `format`, `startOfMonth`, etc.) for parsing and date math
 - Never use `new Date(dateString)` directly — it produces unpredictable UTC/local offset behavior
 - `Completion.date` stores the occurrence date (not the completion timestamp); `completedAt` is the ISO timestamp
+
+### Difficulty
+- `Chore.difficulty` is an integer `1–5` (1 = easiest, 5 = hardest)
+- Defaults to `1` in `defaultChore()` and via the `?? 1` fallback in `ChoreChip` for legacy localStorage data
+- Rendered as filled/empty dot indicators (`●●●○○`) in the `ChoreChip` popover
+- Edited via a row of 5 toggle buttons in `ChoreModal`, styled identically to the recurrence type buttons
 
 ### Colors
 - Colors for chores and members are **hex strings** (e.g., `#3b82f6`), not Tailwind class names

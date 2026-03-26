@@ -56,6 +56,10 @@ export default function ChoreChip({ chore, assignee, done, onToggleDone, onEdit 
               Edit
             </button>
           </div>
+          <p className="text-xs text-gray-500 mb-2">
+            {'●'.repeat(chore.difficulty ?? 1)}{'○'.repeat(5 - (chore.difficulty ?? 1))}
+            <span className="ml-1 text-gray-400">difficulty</span>
+          </p>
           {chore.description && (
             <p className="text-xs text-gray-500 mb-2">{chore.description}</p>
           )}

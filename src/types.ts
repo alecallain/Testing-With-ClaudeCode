@@ -21,6 +21,7 @@ export interface Chore {
   startDate: string; // YYYY-MM-DD
   endDate: string | null; // YYYY-MM-DD or null
   recurrence: Recurrence;
+  difficulty: number; // 1 (easiest) – 5 (hardest)
 }
 
 export interface Completion {

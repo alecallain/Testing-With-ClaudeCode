@@ -13,6 +13,7 @@ const baseChore: Chore = {
   startDate: '2026-03-01',
   endDate: null,
   recurrence: { type: 'daily', daysOfWeek: [], dayOfMonth: null },
+  difficulty: 3,
 };
 
 const assignee: Member = {
@@ -133,6 +134,44 @@ describe('ChoreChip', () => {
 
     it('shows "Mark as done" button when not done', async () => {
       expect(screen.getByRole('button', { name: /mark as done/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('popover — difficulty indicator', () => {
+    it('shows the correct number of filled dots for the difficulty', async () => {
+      const user = userEvent.setup();
+      renderChip({ chore: { difficulty: 3 } });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText(/●●●○○/)).toBeInTheDocument();
+    });
+
+    it('shows all filled dots for difficulty 5', async () => {
+      const user = userEvent.setup();
+      renderChip({ chore: { difficulty: 5 } });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText(/●●●●●/)).toBeInTheDocument();
+    });
+
+    it('shows one filled dot for difficulty 1', async () => {
+      const user = userEvent.setup();
+      renderChip({ chore: { difficulty: 1 } });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText(/●○○○○/)).toBeInTheDocument();
+    });
+
+    it('defaults to difficulty 1 when difficulty is missing (legacy chores)', async () => {
+      const user = userEvent.setup();
+      // Cast to bypass TS to simulate a legacy chore without the difficulty field
+      renderChip({ chore: { difficulty: undefined as unknown as number } });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText(/●○○○○/)).toBeInTheDocument();
+    });
+
+    it('shows the "difficulty" label in the popover', async () => {
+      const user = userEvent.setup();
+      renderChip();
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText(/difficulty/i)).toBeInTheDocument();
     });
   });
 

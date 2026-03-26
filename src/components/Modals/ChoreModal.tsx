@@ -23,6 +23,7 @@ const defaultChore = (): Omit<Chore, 'id'> => ({
   startDate: format(new Date(), 'yyyy-MM-dd'),
   endDate: null,
   recurrence: { type: 'none', daysOfWeek: [], dayOfMonth: null },
+  difficulty: 1,
 });
 
 export default function ChoreModal({ open, onClose, members, initial, onSave, onDelete }: Props) {
@@ -122,6 +123,28 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
                   />
                 ))}
               </div>
+            </div>
+
+            {/* Difficulty */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, difficulty: d }))}
+                    className={`flex-1 text-xs rounded-lg px-2 py-1.5 border ${
+                      form.difficulty === d
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">1 = easiest · 5 = hardest</p>
             </div>
 
             {/* Start / End dates */}
