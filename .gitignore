@@ -14,6 +14,8 @@ dist-ssr
 
 memory/
 chores.db
+chores.db-shm
+chores.db-wal
 
 # Editor directories and files
 .vscode/*
