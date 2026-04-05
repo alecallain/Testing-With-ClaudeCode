@@ -8,7 +8,7 @@ const baseChore: Chore = {
   id: 'chore-1',
   title: 'Wash dishes',
   description: 'Clean all the dishes in the sink',
-  assigneeId: 'member-1',
+  assigneeIds: ['member-1'],
   color: '#3b82f6',
   startDate: '2026-03-01',
   endDate: null,
@@ -22,20 +22,30 @@ const assignee: Member = {
   color: '#10b981',
 };
 
+const bob: Member = {
+  id: 'member-2',
+  name: 'Bob Smith',
+  color: '#3b82f6',
+};
+
 function renderChip(overrides: {
   chore?: Partial<Chore>;
-  assignee?: Member | null;
+  assignees?: Member[];
+  allMembers?: Member[];
   done?: boolean;
   onToggleDone?: () => void;
   onEdit?: () => void;
+  onToggleAssignee?: (memberId: string) => void;
 } = {}) {
   const props = {
     chore: { ...baseChore, ...overrides.chore },
     date: '2026-03-23',
-    assignee: overrides.assignee !== undefined ? overrides.assignee : assignee,
+    assignees: overrides.assignees !== undefined ? overrides.assignees : [assignee],
+    allMembers: overrides.allMembers !== undefined ? overrides.allMembers : [assignee, bob],
     done: overrides.done ?? false,
     onToggleDone: overrides.onToggleDone ?? vi.fn(),
     onEdit: overrides.onEdit ?? vi.fn(),
+    onToggleAssignee: overrides.onToggleAssignee ?? vi.fn(),
   };
   return { ...render(<ChoreChip {...props} />), props };
 }
@@ -64,13 +74,19 @@ describe('ChoreChip', () => {
     });
 
     it('shows assignee initials when an assignee is provided', () => {
-      renderChip({ assignee });
+      renderChip({ assignees: [assignee] });
       // "Alice Johnson" → "AJ"
       expect(screen.getByText('AJ')).toBeInTheDocument();
     });
 
-    it('does not render assignee badge when assignee is null', () => {
-      renderChip({ assignee: null });
+    it('shows multiple initials badges when multiple assignees', () => {
+      renderChip({ assignees: [assignee, bob], allMembers: [assignee, bob] });
+      expect(screen.getByText('AJ')).toBeInTheDocument();
+      expect(screen.getByText('BS')).toBeInTheDocument();
+    });
+
+    it('does not render assignee badge when no assignees', () => {
+      renderChip({ assignees: [] });
       expect(screen.queryByText('AJ')).not.toBeInTheDocument();
     });
 
@@ -195,11 +211,88 @@ describe('ChoreChip', () => {
   });
 
   describe('popover — no assignee', () => {
-    it('does not render "Assigned to" line when assignee is null', async () => {
+    it('does not render "Assigned to" section when no assignees', async () => {
       const user = userEvent.setup();
-      renderChip({ assignee: null });
+      renderChip({ assignees: [], allMembers: [assignee, bob] });
       await user.click(screen.getByRole('button', { name: /wash dishes/i }));
-      expect(screen.queryByText(/assigned to/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/^Assigned to$/i)).not.toBeInTheDocument();
+    });
+
+    it('shows "Assign to" heading when no assignees but members available', async () => {
+      const user = userEvent.setup();
+      renderChip({ assignees: [], allMembers: [assignee] });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText('Assign to')).toBeInTheDocument();
+    });
+  });
+
+  describe('popover — assignee management', () => {
+    it('shows remove button next to each assignee', async () => {
+      const user = userEvent.setup();
+      renderChip({ assignees: [assignee], allMembers: [assignee, bob] });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByRole('button', { name: /remove alice johnson/i })).toBeInTheDocument();
+    });
+
+    it('shows "Add assignee" heading when some assignees exist and slots remain', async () => {
+      const user = userEvent.setup();
+      renderChip({ assignees: [assignee], allMembers: [assignee, bob] });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText('Add assignee')).toBeInTheDocument();
+    });
+
+    it('shows unassigned members as add options', async () => {
+      const user = userEvent.setup();
+      renderChip({ assignees: [assignee], allMembers: [assignee, bob] });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText('Bob Smith')).toBeInTheDocument();
+    });
+
+    it('does not show "Add assignee" section when 3 assignees assigned', async () => {
+      const user = userEvent.setup();
+      const carol: Member = { id: 'member-3', name: 'Carol White', color: '#f59e0b' };
+      renderChip({
+        assignees: [assignee, bob, carol],
+        allMembers: [assignee, bob, carol],
+      });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.queryByText('Add assignee')).not.toBeInTheDocument();
+      expect(screen.queryByText('Assign to')).not.toBeInTheDocument();
+    });
+
+    it('shows "Max 3 assignees" note when at max', async () => {
+      const user = userEvent.setup();
+      const carol: Member = { id: 'member-3', name: 'Carol White', color: '#f59e0b' };
+      renderChip({
+        assignees: [assignee, bob, carol],
+        allMembers: [assignee, bob, carol],
+      });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      expect(screen.getByText(/max 3 assignees/i)).toBeInTheDocument();
+    });
+
+    it('popover stays open after removing an assignee', async () => {
+      const user = userEvent.setup();
+      const onToggleAssignee = vi.fn();
+      renderChip({ assignees: [assignee], allMembers: [assignee, bob], onToggleAssignee });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      await user.click(screen.getByRole('button', { name: /remove alice johnson/i }));
+      expect(onToggleAssignee).toHaveBeenCalledWith('member-1');
+      // Popover should remain open (Edit button still visible)
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+    });
+
+    it('calls onToggleAssignee with memberId when add button clicked', async () => {
+      const user = userEvent.setup();
+      const onToggleAssignee = vi.fn();
+      renderChip({ assignees: [assignee], allMembers: [assignee, bob], onToggleAssignee });
+      await user.click(screen.getByRole('button', { name: /wash dishes/i }));
+      // Bob Smith should be in the add section
+      const bobRow = screen.getByText('Bob Smith').closest('button');
+      await user.click(bobRow!);
+      expect(onToggleAssignee).toHaveBeenCalledWith('member-2');
+      // Popover should remain open
+      expect(screen.getByText('Edit')).toBeInTheDocument();
     });
   });
 
@@ -228,15 +321,17 @@ describe('ChoreChip', () => {
   describe('edge cases', () => {
     it('handles a single-word assignee name (one initial)', async () => {
       const user = userEvent.setup();
-      renderChip({ assignee: { id: 'm2', name: 'Alice', color: '#fff' } });
+      const singleWordMember = { id: 'm2', name: 'Alice', color: '#fff' };
+      renderChip({ assignees: [singleWordMember], allMembers: [singleWordMember] });
       // single word → only the first character as initial
       expect(screen.getByText('A')).toBeInTheDocument();
       await user.click(screen.getByRole('button', { name: /wash dishes/i }));
-      expect(screen.getByText(/Alice/)).toBeInTheDocument();
+      expect(within(screen.getByText('Assigned to').parentElement!).getByText(/Alice/)).toBeInTheDocument();
     });
 
     it('shows at most 2 characters for initials on a long name', () => {
-      renderChip({ assignee: { id: 'm3', name: 'Mary Jane Watson Parker', color: '#fff' } });
+      const longNameMember = { id: 'm3', name: 'Mary Jane Watson Parker', color: '#fff' };
+      renderChip({ assignees: [longNameMember], allMembers: [longNameMember] });
       expect(screen.getByText('MJ')).toBeInTheDocument();
     });
 
@@ -265,6 +360,11 @@ describe('ChoreChip', () => {
           recurrence: { type: 'none', daysOfWeek: [], dayOfMonth: null },
         },
       });
+      expect(screen.getByRole('button', { name: /wash dishes/i })).toBeInTheDocument();
+    });
+
+    it('renders correctly with no allMembers (empty team)', () => {
+      renderChip({ assignees: [], allMembers: [] });
       expect(screen.getByRole('button', { name: /wash dishes/i })).toBeInTheDocument();
     });
   });

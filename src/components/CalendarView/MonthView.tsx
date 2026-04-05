@@ -42,9 +42,10 @@ interface Props {
   isCompleted: (choreId: string, date: string) => boolean;
   onToggleDone: (choreId: string, date: string) => void;
   onEditChore: (chore: Chore) => void;
+  onToggleAssignee: (choreId: string, memberId: string) => void;
 }
 
-export default function MonthView({ chores, members, isCompleted, onToggleDone, onEditChore }: Props) {
+export default function MonthView({ chores, members, isCompleted, onToggleDone, onEditChore, onToggleAssignee }: Props) {
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
 
   const days = useMemo(() => {
@@ -186,13 +187,16 @@ export default function MonthView({ chores, members, isCompleted, onToggleDone, 
                     onToggleDone={onToggleDone}
                     onEditChore={onEditChore}
                     spanRowCount={spanRowsPerDay[dateStr] ?? 0}
+                    onToggleAssignee={onToggleAssignee}
                   />
                 );
               })}
 
               {/* Spanning event bars — absolutely positioned across week columns */}
               {segs.map((seg) => {
-                const assignee = members.find((m) => m.id === seg.chore.assigneeId) ?? null;
+                const assignees = seg.chore.assigneeIds
+                  .map((id) => members.find((m) => m.id === id))
+                  .filter((m): m is Member => m !== undefined);
                 const leftPct = (seg.startCol / 7) * 100;
                 const widthPct = (seg.colSpan / 7) * 100;
                 const top = DATE_HEADER_HEIGHT + seg.rowIndex * SPAN_ROW_SIZE;
@@ -215,9 +219,22 @@ export default function MonthView({ chores, members, isCompleted, onToggleDone, 
                     }}
                   >
                     {seg.isStart && <span className="truncate">{seg.chore.title}</span>}
-                    {seg.isEnd && assignee && (
-                      <span className="ml-auto shrink-0 w-4 h-4 rounded-full bg-white/30 text-[9px] font-bold flex items-center justify-center">
-                        {getInitials(assignee.name)}
+                    {seg.isEnd && assignees.length > 0 && (
+                      <span className="ml-auto shrink-0 flex">
+                        {assignees.slice(0, 3).map((m, i) => (
+                          <span
+                            key={m.id}
+                            className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center text-white"
+                            style={{
+                              backgroundColor: m.color,
+                              marginLeft: i === 0 ? 0 : -4,
+                              zIndex: assignees.length - i,
+                              position: 'relative',
+                            }}
+                          >
+                            {getInitials(m.name)}
+                          </span>
+                        ))}
                       </span>
                     )}
                   </button>

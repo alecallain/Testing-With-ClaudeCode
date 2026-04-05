@@ -9,14 +9,14 @@ export interface Recurrence {
 export interface Member {
   id: string;
   name: string;
-  color: string; // tailwind bg color class e.g. 'bg-blue-500'
+  color: string; // hex color string e.g. '#3b82f6'
 }
 
 export interface Chore {
   id: string;
   title: string;
   description: string;
-  assigneeId: string | null;
+  assigneeIds: string[]; // up to 3 member IDs
   color: string; // hex color for the chore chip
   startDate: string; // YYYY-MM-DD
   endDate: string | null; // YYYY-MM-DD or null

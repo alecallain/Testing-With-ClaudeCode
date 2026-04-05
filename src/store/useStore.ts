@@ -193,6 +193,22 @@ export function useStore() {
     [toggleCompletionMutation],
   );
 
+  const toggleAssignee = useCallback(
+    (choreId: string, memberId: string) => {
+      const chore = state.chores.find((c) => c.id === choreId);
+      if (!chore) return;
+      const isAssigned = chore.assigneeIds.includes(memberId);
+      const newIds = isAssigned
+        ? chore.assigneeIds.filter((id) => id !== memberId)
+        : chore.assigneeIds.length < 3
+          ? [...chore.assigneeIds, memberId]
+          : chore.assigneeIds; // silently no-op when at max 3
+      if (newIds === chore.assigneeIds) return;
+      updateChoreMutation.mutate({ ...chore, assigneeIds: newIds });
+    },
+    [state.chores, updateChoreMutation],
+  );
+
   const isCompleted = useCallback(
     (choreId: string, date: string) =>
       state.completions.some((c) => c.choreId === choreId && c.date === date),
@@ -210,6 +226,7 @@ export function useStore() {
     updateChore,
     removeChore,
     toggleCompletion,
+    toggleAssignee,
     isCompleted,
   };
 }

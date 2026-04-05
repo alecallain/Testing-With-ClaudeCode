@@ -37,6 +37,7 @@ export default function App() {
           isCompleted={store.isCompleted}
           onToggleDone={store.toggleCompletion}
           onEditChore={openEditChore}
+          onToggleAssignee={store.toggleAssignee}
         />
       </main>
 

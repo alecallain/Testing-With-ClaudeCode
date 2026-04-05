@@ -17,13 +17,14 @@ interface Props {
   onToggleDone: (choreId: string, date: string) => void;
   onEditChore: (chore: Chore) => void;
   spanRowCount?: number;
+  onToggleAssignee: (choreId: string, memberId: string) => void;
 }
 
 const MAX_VISIBLE = 3;
 
 const SPAN_ROW_SIZE = 24; // must match MonthView constant (SPAN_BAR_HEIGHT + SPAN_BAR_GAP)
 
-export default function DayCell({ date, isCurrentMonth, occurrences, members, onToggleDone, onEditChore, spanRowCount = 0 }: Props) {
+export default function DayCell({ date, isCurrentMonth, occurrences, members, onToggleDone, onEditChore, spanRowCount = 0, onToggleAssignee }: Props) {
   const [showAll, setShowAll] = useState(false);
   const today = isToday(date);
   const visible = showAll ? occurrences : occurrences.slice(0, MAX_VISIBLE);
@@ -56,9 +57,13 @@ export default function DayCell({ date, isCurrentMonth, occurrences, members, on
             chore={chore}
             date={d}
             done={done}
-            assignee={members.find((m) => m.id === chore.assigneeId) ?? null}
+            assignees={chore.assigneeIds
+              .map((id) => members.find((m) => m.id === id))
+              .filter((m): m is Member => m !== undefined)}
+            allMembers={members}
             onToggleDone={() => onToggleDone(chore.id, d)}
             onEdit={() => onEditChore(chore)}
+            onToggleAssignee={(memberId) => onToggleAssignee(chore.id, memberId)}
           />
         ))}
         {!showAll && overflow > 0 && (

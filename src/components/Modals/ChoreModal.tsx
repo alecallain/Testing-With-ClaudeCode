@@ -18,7 +18,7 @@ interface Props {
 const defaultChore = (): Omit<Chore, 'id'> => ({
   title: '',
   description: '',
-  assigneeId: null,
+  assigneeIds: [],
   color: CHORE_COLORS[0],
   startDate: format(new Date(), 'yyyy-MM-dd'),
   endDate: null,
@@ -93,19 +93,51 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
               />
             </div>
 
-            {/* Assignee */}
+            {/* Assignees */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Assigned to</label>
-              <select
-                value={form.assigneeId ?? ''}
-                onChange={(e) => setForm((f) => ({ ...f, assigneeId: e.target.value || null }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Unassigned</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Assign to <span className="text-gray-400 font-normal">(up to 3)</span>
+              </label>
+              {members.length === 0 ? (
+                <p className="text-xs text-gray-400">No team members yet — add some via "Manage Team".</p>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {members.map((m) => {
+                    const isSelected = form.assigneeIds.includes(m.id);
+                    const atMax = form.assigneeIds.length >= 3;
+                    const disabled = !isSelected && atMax;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => {
+                          setForm((f) => {
+                            const ids = f.assigneeIds.includes(m.id)
+                              ? f.assigneeIds.filter((id) => id !== m.id)
+                              : [...f.assigneeIds, m.id];
+                            return { ...f, assigneeIds: ids };
+                          });
+                        }}
+                        className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs border transition-colors ${
+                          isSelected
+                            ? 'border-transparent text-white'
+                            : disabled
+                            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                        style={isSelected ? { backgroundColor: m.color, borderColor: m.color } : undefined}
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.5)' : m.color }}
+                        />
+                        {m.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Color */}

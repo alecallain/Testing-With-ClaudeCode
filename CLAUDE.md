@@ -72,10 +72,17 @@ src/
 - Components are pure presentational unless they're a modal (which manages local form state)
 - `useStore()` is called **only in `App.tsx`**; all other components receive state and callbacks via props
 
+### Assignees
+- `Chore.assigneeIds` is a `string[]` of member IDs — up to 3 assignees per chore
+- Max-3 enforcement is layered: `toggleAssignee` in `useStore` (store level), pill buttons disabled at max in `ChoreModal`, and the "Add assignee" section hidden in the `ChoreChip` popover
+- `removeMember` filters the removed member's ID out of every chore's `assigneeIds` array (read-modify-write loop in `server/db.ts:deleteMember`)
+- Assignees are resolved from IDs to `Member[]` in `MonthView` (spanning bars) and `DayCell` (chips), then passed as `assignees: Member[]` to `ChoreChip`
+- Quick add/remove: `ChoreChip` popover shows current assignees (× to remove) and available members to add (+), calling `onToggleAssignee` — popover stays open after each change
+
 ### State Management
 - All state lives in `useStore` — no Context API, Redux, Zustand, or other libraries
 - Mutations use functional `setState(prev => ({ ...prev, ... }))` — always spread previous state
-- Cascading effects happen in a single `update()` call (e.g., removing a member also unassigns their chores)
+- Cascading effects happen in a single `update()` call (e.g., removing a member also filters them from all chore `assigneeIds`)
 - Entity IDs are assigned inside store actions using `crypto.randomUUID()` — callers pass `Omit<Entity, 'id'>`
 
 ### Forms / Modals
@@ -110,6 +117,6 @@ Chores with `recurrence.type === 'none'` and a non-null `endDate` render as abso
 - **Do not use dynamic Tailwind class names** (e.g., `` `bg-[${color}]` ``) — they won't be included in the purged build; use inline styles for dynamic values
 - **Do not call `useStore()` in child components** — state flows down from App via props only
 - **Do not generate entity IDs outside the store** — ID generation belongs in `useStore` actions
-- **Do not add a backend or API layer** — the app is intentionally client-only with localStorage
+- **Do not add a second backend** — the app uses an Express + SQLite backend (`server/`) with SSE for real-time sync; do not add another persistence layer
 - **Do not add a router** — the app is a single-view UI; navigation state (e.g., current month) is local component state
 - **Do not store `Date` objects in state** — use `YYYY-MM-DD` strings and parse only when needed for computation
