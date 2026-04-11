@@ -2,8 +2,15 @@
   "mcpServers": {
     "context7": {
       "type": "stdio",
-      "command": "npx",
+      "command": "docker",
       "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--name",
+        "context7-mcp",
+        "node:22-alpine",
+        "npx",
         "-y",
         "@upstash/context7-mcp"
       ],
