@@ -248,27 +248,29 @@ describe('ChoreChip', () => {
       expect(screen.getByText('Bob Smith')).toBeInTheDocument();
     });
 
-    it('does not show "Add assignee" section when 3 assignees assigned', async () => {
+    it('does not show "Add assignee" section when 4 assignees assigned', async () => {
       const user = userEvent.setup();
       const carol: Member = { id: 'member-3', name: 'Carol White', color: '#f59e0b' };
+      const dave: Member = { id: 'member-4', name: 'Dave Green', color: '#10b981' };
       renderChip({
-        assignees: [assignee, bob, carol],
-        allMembers: [assignee, bob, carol],
+        assignees: [assignee, bob, carol, dave],
+        allMembers: [assignee, bob, carol, dave],
       });
       await user.click(screen.getByRole('button', { name: /wash dishes/i }));
       expect(screen.queryByText('Add assignee')).not.toBeInTheDocument();
       expect(screen.queryByText('Assign to')).not.toBeInTheDocument();
     });
 
-    it('shows "Max 3 assignees" note when at max', async () => {
+    it('shows "Max 4 assignees" note when at max', async () => {
       const user = userEvent.setup();
       const carol: Member = { id: 'member-3', name: 'Carol White', color: '#f59e0b' };
+      const dave: Member = { id: 'member-4', name: 'Dave Green', color: '#10b981' };
       renderChip({
-        assignees: [assignee, bob, carol],
-        allMembers: [assignee, bob, carol],
+        assignees: [assignee, bob, carol, dave],
+        allMembers: [assignee, bob, carol, dave],
       });
       await user.click(screen.getByRole('button', { name: /wash dishes/i }));
-      expect(screen.getByText(/max 3 assignees/i)).toBeInTheDocument();
+      expect(screen.getByText(/max 4 assignees/i)).toBeInTheDocument();
     });
 
     it('popover stays open after removing an assignee', async () => {

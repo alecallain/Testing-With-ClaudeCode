@@ -66,10 +66,10 @@ Colors are hex strings (not Tailwind class names) for chore chips and member ava
 
 ## Multi-Assignee Pattern
 
-`Chore.assigneeIds` is a `string[]` of up to 3 member IDs (replaces the old single `assigneeId: string | null`).
+`Chore.assigneeIds` is a `string[]` of up to 4 member IDs (replaces the old single `assigneeId: string | null`).
 
 - **Resolution**: `MonthView` and `DayCell` resolve `assigneeIds` to `Member[]` by filtering the `members` array, then pass the resolved array as `assignees: Member[]` to `ChoreChip`. Never pass raw IDs to presentational components.
 - **Quick add/remove**: `ChoreChip` receives `assignees`, `allMembers`, and `onToggleAssignee(memberId)`. The popover shows current assignees with × remove buttons and available members with + add buttons. The popover stays open after each toggle (unlike `onToggleDone` which closes it).
-- **Max-3 enforcement**: layered at the store action (`toggleAssignee` checks `length < 3`), the modal UI (pill buttons disabled at max), and the popover (add section hidden when full).
+- **Max-4 enforcement**: layered at the store action (`toggleAssignee` checks `length < 4`), the modal UI (pill buttons disabled at max), and the popover (add section hidden when full).
 - **Cascading removal**: when a member is deleted, `server/db.ts:deleteMember` reads all chores and filters the member's ID out of every `assigneeIds` array, then broadcasts the updated chore list via SSE.
 - **SQLite storage**: `assigneeIds` is stored as a JSON string (e.g., `'["id1","id2"]'`) in the `chores` table. `rowToChore` parses it with `JSON.parse`; `insertChore`/`updateChore` serialize with `JSON.stringify`.

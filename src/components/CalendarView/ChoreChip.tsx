@@ -105,7 +105,7 @@ export default function ChoreChip({ chore, assignees, allMembers, done, onToggle
             </div>
           )}
 
-          {assignees.length < 3 && unassignedMembers.length > 0 && (
+          {assignees.length < 4 && unassignedMembers.length > 0 && (
             <div className="mb-2">
               <p className="text-xs text-gray-500 mb-1 font-medium">
                 {assignees.length === 0 ? 'Assign to' : 'Add assignee'}
@@ -127,8 +127,8 @@ export default function ChoreChip({ chore, assignees, allMembers, done, onToggle
             </div>
           )}
 
-          {assignees.length >= 3 && (
-            <p className="text-xs text-gray-400 mb-2">Max 3 assignees</p>
+          {assignees.length >= 4 && (
+            <p className="text-xs text-gray-400 mb-2">Max 4 assignees</p>
           )}
 
           <button

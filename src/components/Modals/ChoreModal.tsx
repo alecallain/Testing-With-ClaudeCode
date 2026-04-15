@@ -96,7 +96,7 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
             {/* Assignees */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Assign to <span className="text-gray-400 font-normal">(up to 3)</span>
+                Assign to <span className="text-gray-400 font-normal">(up to 4)</span>
               </label>
               {members.length === 0 ? (
                 <p className="text-xs text-gray-400">No team members yet — add some via "Manage Team".</p>
@@ -104,7 +104,7 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
                 <div className="flex gap-2 flex-wrap">
                   {members.map((m) => {
                     const isSelected = form.assigneeIds.includes(m.id);
-                    const atMax = form.assigneeIds.length >= 3;
+                    const atMax = form.assigneeIds.length >= 4;
                     const disabled = !isSelected && atMax;
                     return (
                       <button

@@ -200,9 +200,9 @@ export function useStore() {
       const isAssigned = chore.assigneeIds.includes(memberId);
       const newIds = isAssigned
         ? chore.assigneeIds.filter((id) => id !== memberId)
-        : chore.assigneeIds.length < 3
+        : chore.assigneeIds.length < 4
           ? [...chore.assigneeIds, memberId]
-          : chore.assigneeIds; // silently no-op when at max 3
+          : chore.assigneeIds; // silently no-op when at max 4
       if (newIds === chore.assigneeIds) return;
       updateChoreMutation.mutate({ ...chore, assigneeIds: newIds });
     },
