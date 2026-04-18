@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
-import { format } from 'date-fns';
+import { format, parseISO, getDate } from 'date-fns';
 import type { Chore, Member, RecurrenceType } from '../../types';
 import { CHORE_COLORS } from '../../utils/colors';
+import ModalShell from './ModalShell';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const INPUT_CLS =
+  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
 
 interface Props {
   open: boolean;
@@ -36,10 +40,13 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
   }, [open, initial]);
 
   function setRecurrenceType(type: RecurrenceType) {
-    setForm((f) => ({
-      ...f,
-      recurrence: { ...f.recurrence, type },
-    }));
+    setForm((f) => {
+      const dayOfMonth =
+        type === 'monthly' && f.recurrence.dayOfMonth === null
+          ? getDate(parseISO(f.startDate))
+          : f.recurrence.dayOfMonth;
+      return { ...f, recurrence: { ...f.recurrence, type, dayOfMonth } };
+    });
   }
 
   function toggleDayOfWeek(day: number) {
@@ -51,18 +58,26 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
     });
   }
 
+  function toggleAssignee(memberId: string) {
+    setForm((f) => {
+      const ids = f.assigneeIds.includes(memberId)
+        ? f.assigneeIds.filter((id) => id !== memberId)
+        : [...f.assigneeIds, memberId];
+      return { ...f, assigneeIds: ids };
+    });
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) return;
+    if (form.recurrence.type === 'weekly' && form.recurrence.daysOfWeek.length === 0) return;
+    if (form.endDate && form.endDate < form.startDate) return;
     onSave(form);
     onClose();
   }
 
   return (
-    <Dialog open={open} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+    <ModalShell open={open} onClose={onClose} maxWidth="max-w-md">
           <Dialog.Title className="text-lg font-semibold text-gray-800 mb-4">
             {initial ? 'Edit Chore' : 'Add Chore'}
           </Dialog.Title>
@@ -75,7 +90,7 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={INPUT_CLS}
                 placeholder="e.g. Clean break room"
                 required
               />
@@ -87,7 +102,7 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className={`${INPUT_CLS} resize-none`}
                 rows={2}
                 placeholder="Optional details"
               />
@@ -111,14 +126,7 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
                         key={m.id}
                         type="button"
                         disabled={disabled}
-                        onClick={() => {
-                          setForm((f) => {
-                            const ids = f.assigneeIds.includes(m.id)
-                              ? f.assigneeIds.filter((id) => id !== m.id)
-                              : [...f.assigneeIds, m.id];
-                            return { ...f, assigneeIds: ids };
-                          });
-                        }}
+                        onClick={() => toggleAssignee(m.id)}
                         className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs border transition-colors ${
                           isSelected
                             ? 'border-transparent text-white'
@@ -187,7 +195,7 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
                   type="date"
                   value={form.startDate}
                   onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={INPUT_CLS}
                   required
                 />
               </div>
@@ -197,8 +205,11 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
                   type="date"
                   value={form.endDate ?? ''}
                   onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value || null }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={INPUT_CLS}
                 />
+                {form.endDate && form.endDate < form.startDate && (
+                  <p className="text-xs text-red-500 mt-1">End date must be after start date.</p>
+                )}
               </div>
             </div>
 
@@ -238,6 +249,9 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
                       {name}
                     </button>
                   ))}
+                  {form.recurrence.daysOfWeek.length === 0 && (
+                    <p className="w-full text-xs text-red-500 mt-1">Select at least one day.</p>
+                  )}
                 </div>
               )}
 
@@ -293,8 +307,6 @@ export default function ChoreModal({ open, onClose, members, initial, onSave, on
               </div>
             </div>
           </form>
-        </Dialog.Panel>
-      </div>
-    </Dialog>
+    </ModalShell>
   );
 }
