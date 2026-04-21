@@ -1,12 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   startOfMonth,
   endOfMonth,
   startOfWeek,
   endOfWeek,
   addDays,
-  addMonths,
-  subMonths,
   format,
   isSameMonth,
   parseISO,
@@ -39,14 +37,16 @@ interface SpanSegment {
 interface Props {
   chores: Chore[];
   members: Member[];
+  currentMonth: Date;
+  onNavigate: (direction: 'prev' | 'next') => void;
+  onSwitchToYear: () => void;
   isCompleted: (choreId: string, date: string) => boolean;
   onToggleDone: (choreId: string, date: string) => void;
   onEditChore: (chore: Chore) => void;
   onToggleAssignee: (choreId: string, memberId: string) => void;
 }
 
-export default function MonthView({ chores, members, isCompleted, onToggleDone, onEditChore, onToggleAssignee }: Props) {
-  const [currentMonth, setCurrentMonth] = useState(() => new Date());
+export default function MonthView({ chores, members, currentMonth, onNavigate, onSwitchToYear, isCompleted, onToggleDone, onEditChore, onToggleAssignee }: Props) {
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(currentMonth));
@@ -140,23 +140,29 @@ export default function MonthView({ chores, members, isCompleted, onToggleDone, 
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
-        <button
-          onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
-          className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
-          aria-label="Previous month"
-        >
-          ‹
-        </button>
-        <h2 className="text-lg font-semibold text-gray-800">
-          {format(currentMonth, 'MMMM yyyy')}
-        </h2>
-        <button
-          onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
-          className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
-          aria-label="Next month"
-        >
-          ›
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onNavigate('prev')}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            aria-label="Previous month"
+          >
+            ‹
+          </button>
+          <h2 className="text-lg font-semibold text-gray-800 min-w-[160px] text-center">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h2>
+          <button
+            onClick={() => onNavigate('next')}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            aria-label="Next month"
+          >
+            ›
+          </button>
+        </div>
+        <div className="flex rounded-md border border-gray-200 overflow-hidden text-sm">
+          <button className="px-3 py-1 bg-gray-800 text-white font-medium">Month</button>
+          <button onClick={onSwitchToYear} className="px-3 py-1 text-gray-600 hover:bg-gray-50">Year</button>
+        </div>
       </div>
 
       {/* Day-of-week labels */}

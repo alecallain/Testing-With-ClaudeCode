@@ -37,7 +37,7 @@ function renderModal(overrides: {
     onSave: overrides.onSave ?? vi.fn(),
     onClose: overrides.onClose ?? vi.fn(),
     ...(overrides.onDelete !== undefined ? { onDelete: overrides.onDelete } : {}),
-  };
+  } as Parameters<typeof ChoreModal>[0];
   return { ...render(<ChoreModal {...props} />), props };
 }
 
