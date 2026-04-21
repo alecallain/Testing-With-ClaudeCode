@@ -23,7 +23,7 @@ function renderModal(overrides: {
     onAdd: overrides.onAdd ?? vi.fn(),
     onRemove: overrides.onRemove ?? vi.fn(),
     onClose: overrides.onClose ?? vi.fn(),
-  };
+  } as Parameters<typeof TeamModal>[0];
   return { ...render(<TeamModal {...props} />), props };
 }
 
