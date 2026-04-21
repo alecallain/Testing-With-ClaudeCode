@@ -1,2 +1,3 @@
 - [Headless UI v2 in jsdom](feedback_headlessui_jsdom.md) — no mock needed; portal reopen limitation; use false→true rerender pattern for reset tests
 - [Modal query patterns](feedback_modal_query_patterns.md) — date input queries, heading vs. button ambiguity, spinbutton, Remove button with multiple members
+- [YearView test patterns](project_yearview_patterns.md) — aria-label format for month cards, count verification strategy, nav button labels
